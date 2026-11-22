@@ -64,6 +64,26 @@ bash scripts/build-macos.sh
 
 Перед публикацией проверьте изменения и тесты (`swift test`), затем соберите установщик. Для распространения через GitHub создайте Release и прикрепите к нему DMG из `dist/`. Публичный релиз без Developer ID-подписи и Apple notarization может показать пользователям предупреждение Gatekeeper; для бесшовной установки потребуется сертификат Apple Developer и нотариализация.
 
+## Windows-версия
+
+Windows-приложение находится отдельно в `Windows/TEDesk.Windows/` и не влияет на сборку macOS.
+
+Для локальной сборки нужен Windows 10/11 и .NET 8 SDK. В PowerShell из корня репозитория выполните:
+
+```powershell
+dotnet publish Windows/TEDesk.Windows/TEDesk.Windows.csproj --configuration Release --runtime win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true --output Windows/dist
+```
+
+Запустите `Windows/dist/TE Desk.exe`. Это self-contained portable-сборка для Windows x64; .NET отдельно устанавливать на целевом компьютере не нужно. Чтобы собрать ZIP:
+
+```powershell
+Compress-Archive -Path Windows/dist/* -DestinationPath TE-Desk-windows-x64.zip
+```
+
+GitHub Actions автоматически соберёт Windows-версию при изменениях в `Windows/` или README. ZIP можно скачать в **Actions → Windows build → последний запуск → Artifacts**; артефакт хранится 30 дней. Для сборки требуется Windows runner, поэтому macOS-скрипт `scripts/build-macos.sh` Windows-приложение не создаёт.
+
+Windows-версия перечисляет USB-устройства через встроенный Windows PowerShell/CIM и показывает готовые съёмные тома плюс тома с точными известными метками TE. Для OP–XY режим MTP по-прежнему требует Field Kit; TE Desk не читает содержимое MTP и не меняет файлы. Номер прошивки ищется на официальной странице только по кнопке. USB-поиск и ёмкость томов не требуют запуска от имени администратора. Windows-сборка пока рассчитана на x64 и не подписана сертификатом издателя; SmartScreen может показать предупреждение.
+
 ## Возможности
 
 - Ищет подключённые USB-устройства через `system_profiler`; если USB-идентификатор недоступен, распознаёт поддерживаемые модели по точному имени внешнего тома, например `OP-XY`.
